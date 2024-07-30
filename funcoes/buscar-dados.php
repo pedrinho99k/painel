@@ -5,7 +5,7 @@ include_once(__DIR__ . '/../config/conexao.php');
 try {
     // Definindo o SQL
     $sql = 'SELECT 
-        ai.numatend AS "ATENDIMENTO", 
+        ai.numatend AS "ATEND.", 
         a.datatend AS "INTERNAÇÃO", 
         p.nomepac AS "PACIENTE", 
         cs.nomeserv AS "TIPO",
@@ -30,7 +30,16 @@ try {
         JOIN cadserv cs ON a.codserv = cs.codserv 
         WHERE posicao = \'I\'
         AND cc.codcc <> \'000137\'
-        ORDER BY cc.nomecc,ai.codlei
+        ORDER BY
+            (CASE 
+                WHEN (SELECT 1 
+                    FROM cabpresc cp 
+                    JOIN itmpresc ip ON cp.numprescr = ip.numprescr 
+                    WHERE cp.numatend = ai.numatend
+                    AND ip.codintsv = \'00000110\'
+                    LIMIT 1) = 1 THEN 0
+                ELSE 1
+            END) DESC,cc.nomecc,ai.codlei
     ';
 
     // Conectando ao banco de dados

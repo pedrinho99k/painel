@@ -14,58 +14,108 @@ function formatarDataHora(dateTimeString) {
   return `${dia}/${mes}/${ano} - ${hora}:${minuto}`;
 }
 
-$(document).ready(function() {
-  function carregarDados() {
-    $.ajax({
-      method: "GET",
-      url: url + "funcoes/buscar-dados.php",
-      dataType: "json",
-      success: function(result) {
-        if (result.error) {
-          console.error(result.error);
-          return;
-        }
-
-        console.log(result);
-        var thead = $('#dataTable thead tr').empty();
-        var tbody = $('#dataTable tbody').empty();
-        var setorCounts = {};
-
-        if (result.length > 0) {
-          // Cabeçalho
-          var headers = Object.keys(result[0]);
-          headers.forEach(header => thead.append(`<th>${header}</th>`)); // Exbição do cabeçalho
-
-          result.forEach(form => {
-            // Contagem de setores
-            setorCounts[form.SETOR] = (setorCounts[form.SETOR] || 0) + 1;
-
-            // Condição para aplicação da função de formatar data
-            var row = $('<tr>');
-            headers.forEach(header => {
-              var cellValue = (header === "INTERNAÇÃO" || header === "PREV. ALTA") ? formatarDataHora(form[header]) : form[header];
-              row.append(`<td>${cellValue}</td>`);
-            });
-
-            // Exibição das linhas
-            tbody.append(row);
-          });
-
-          // Pacientes por Setor
-          var setorCountsDiv = $('#setorCounts').empty();
-          Object.keys(setorCounts).forEach(setor => {
-            setorCountsDiv.append(`<span>${setor} : ${setorCounts[setor]} - </span>`);
-          });
-
-          // Total de Pacientes
-          setorCountsDiv.append(`<span>TOTAL DE PACIENTES : ${result.length}</span>`);
-        }
-      },
-      error: function() {
-        console.log("Erro no AJAX!");
+function carregarDados() {
+  $.ajax({
+    method: "GET",
+    url: url + "funcoes/buscar-dados.php",
+    dataType: "json",
+    success: function(result) {
+      if (result.error) {
+        console.error(result.error);
+        return;
       }
-    });
-  };
 
-  carregarDados();
+      console.log(result);
+      var thead = $('#dataTable thead tr').empty();
+      var tbody = $('#dataTable tbody').empty();
+      var setorCounts = {};
+      var altaNaoCounts = {};
+
+      if (result.length > 0) {
+        // Cabeçalho
+        var headers = Object.keys(result[0]);
+        headers.forEach(header => thead.append(`<th>${header}</th>`)); // Exbição do cabeçalho
+
+        result.forEach(form => {
+          // Contagem de setores
+          setorCounts[form.SETOR] = (setorCounts[form.SETOR] || 0) + 1;
+
+          // if(form['ALTA?'] === 'NÃO') {
+          //   altaNaoCounts++;
+          // }
+
+          if (form['ALTA?'] === 'NÃO') {
+            altaNaoCounts[form.SETOR] = (altaNaoCounts[form.SETOR] || 0) + 1;
+          }
+
+          // Condição para aplicação da função de formatar data
+          var row = $('<tr>');
+          headers.forEach(header => {
+            var cellValue = (header === "INTERNAÇÃO" || header === "PREV. ALTA") ? formatarDataHora(form[header]) : form[header];
+            row.append(`<td>${cellValue}</td>`);
+          });
+
+          // Alterar a cor das linhas
+          if (form['ALTA?'] === 'SIM') {
+            row.addClass('alta-sim');
+          } else if (form['ALTA?'] === 'NÃO') {
+            row.addClass('alta-nao');
+          }
+
+          // Exibição das linhas
+          tbody.append(row);
+        });
+
+        // Pacientes por Setor
+        var setorCountsDiv = $('#setorCounts').empty();
+        Object.keys(setorCounts).forEach(setor => {
+          var altaNaoCount = altaNaoCounts[setor] || 0;
+          setorCountsDiv.append(`<div class="setor-item">${setor} = ${setorCounts[setor]}, ALTA NÃO = ${altaNaoCount}</div>`);
+        });
+
+        // Total de Pacientes
+        var totalAltaNao = Object.values(altaNaoCounts).reduce((sum, count) => sum + count, 0);
+        setorCountsDiv.append(`<div class="total">TOTAL DE PACIENTES : ${result.length}</div>`);
+        setorCountsDiv.append(`<div class="total">TOTAL DE ALTA NÃO : ${totalAltaNao}</div>`);
+      }
+    },
+    error: function() {
+      console.log("Erro no AJAX!");
+    }
+  });
+};
+
+let scrollInterval;
+let direction = 'down';
+
+function rolarPaginaContinuamente() {
+  clearInterval(scrollInterval);
+
+  scrollInterval = setInterval(function() {
+    const scrolledToBottom = (window.innerHeight + window.scrollY - 35) >= document.body.scrollHeight;
+    const scrolledToTop = window.scrollY === 0;
+
+    if (direction === 'down') {
+      if (scrolledToBottom) {
+        direction = 'up';
+      } else {
+        window.scrollBy({ top: 1, behavior: 'smooth' });
+      }
+    } else if (direction === 'up') {
+      if (scrolledToTop) {
+        direction = 'down';
+        carregarDados();
+      } else {
+        window.scrollBy({ top: -1, behavior: 'smooth' });
+      }
+    }
+  }, 40); // Intervalo mais curto para uma rolagem mais suave
+}
+
+function pararRolagem() {
+  clearInterval(scrollInterval);
+}
+
+$(document).ready(function() {
+  rolarPaginaContinuamente()
 });
