@@ -4,57 +4,41 @@ include_once(__DIR__ . '/../config/conexao.php');
 
 try {
     // Definindo o SQL
-    // $sql = 'SELECT AI.NUMATEND AS "ATENDIMENTO",
-    //     P.nomepac AS "PACIENTE",
-    //     cc.nomecc AS "SETOR",
-    //     AI.codlei AS "LEITO",
-    //     a.datatend AS "INTERNAÇÃO",
-    //     ai.dataprev AS "PREV. ALTA"
-    //     from arqatend a 
-    // JOIN cadpac p ON a.codpac = p.codpac
-    // JOIN arqint ai ON a.numatend = ai.numatend
-    // JOIN cadlei cl ON ai.codlei = cl.codlei
-    // JOIN cadaco ca ON cl.codaco = ca.codaco
-    // JOIN cadcc cc ON ca.codcc = cc.codcc
-    // WHERE ai.posicao = \'I\' AND cc.nomecc != \'HOSPITAL DIA\'
-    // ORDER BY cc.nomecc,ai.codlei';
-
-    // $sql = 'select ai.numatend AS "ATENDIMENTO",
-    //     a.datatend AS "INTERNAÇÃO",
-    //     P.nomepac AS "PACIENTE",
-    //     cs.nomeserv AS "SERVIÇO",
-    //     cc.nomecc AS "SETOR",
-    //     ai.codlei AS "LEITO",
-    //     ai.dataprev AS "PREV. ALTA" 
-    // from arqatend a 
-    // JOIN cadpac p ON a.codpac = p.codpac
-    // JOIN arqint ai ON a.numatend = ai.numatend
-    // JOIN cadlei cl ON ai.codlei = cl.codlei
-    // JOIN cadaco ca ON cl.codaco = ca.codaco
-    // JOIN cadcc cc ON ca.codcc = cc.codcc
-    // JOIN cadserv cs ON a.codserv = cs.codserv where posicao = \'I\' and cc.codcc <> \'000137\' order by cc.nomecc,ai.codlei';
-
-    $sql = 'select ai.numatend AS "ATENDIMENTO",
-        a.datatend AS "INTERNAÇÃO",
-        P.nomepac AS "PACIENTE",
+    $sql = 'SELECT 
+        ai.numatend AS "ATENDIMENTO", 
+        a.datatend AS "INTERNAÇÃO", 
+        p.nomepac AS "PACIENTE", 
         cs.nomeserv AS "TIPO",
-        cc.nomecc AS "SETOR",
-        ai.codlei AS "LEITO",
-        ai.dataprev AS "PREV. ALTA" 
-        from arqatend a 
+        cc.nomecc AS "SETOR", 
+        ai.codlei AS "LEITO",  
+        ai.dataprev AS "PREV. ALTA",
+        CASE
+            WHEN (SELECT 1 
+                FROM cabpresc cp 
+                JOIN itmpresc ip ON cp.numprescr = ip.numprescr 
+                WHERE cp.numatend = ai.numatend
+                    AND ip.codintsv = \'00000110\'
+                LIMIT 1) = 1 THEN \'SIM\'
+            ELSE \'NÃO\'
+        END AS "ALTA?"
+        FROM arqatend a
         JOIN cadpac p ON a.codpac = p.codpac
         JOIN arqint ai ON a.numatend = ai.numatend
         JOIN cadlei cl ON ai.codlei = cl.codlei
         JOIN cadaco ca ON cl.codaco = ca.codaco
         JOIN cadcc cc ON ca.codcc = cc.codcc
-        JOIN cadserv cs ON a.codserv = cs.codserv where posicao = \'I\' and cc.codcc <> \'000137\' order by cc.nomecc,ai.codlei';
+        JOIN cadserv cs ON a.codserv = cs.codserv 
+        WHERE posicao = \'I\'
+        AND cc.codcc <> \'000137\'
+        ORDER BY cc.nomecc,ai.codlei
+    ';
 
     // Conectando ao banco de dados
     $conecta = Conectar();
 
     function limparCaracteresEspeciais($string) {
-        // Remove caracteres especiais, mantendo apenas letras, números e espaços
-        return preg_replace('/[^a-zA-Z0-9\s:\/]/', '', $string);
+        // Aceitando somente esses caracteres no codigo
+        return preg_replace('/[^a-zA-Z0-9\s:.\-ÃãÕõÇç]/', '', $string);
     }
 
     if($conecta) {
@@ -74,12 +58,14 @@ try {
         // Obtendo os resultados
         $retorno = $stm->fetchAll(PDO::FETCH_ASSOC);
 
+        // Limpando os caracteres
         foreach($retorno as &$linha) {
             foreach($linha as &$valor) {
                 $valor = limparCaracteresEspeciais($valor);
             }
         }
 
+        // Se o retorno vier vazio
         if (empty($retorno)) {
             echo json_encode(['error' => 'Nenhum dado encontrado']);
             exit;

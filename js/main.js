@@ -1,7 +1,8 @@
 var url = '/painel/';
 
+// Formatar data para Formato BR
 function formatarDataHora(dateTimeString) {
-  if(!dateTimeString) return '';
+  if (!dateTimeString) return '';
 
   var data = new Date(dateTimeString);
   var dia = String(data.getDate()).padStart(2, '0');
@@ -10,77 +11,61 @@ function formatarDataHora(dateTimeString) {
   var hora = String(data.getHours()).padStart(2, '0');
   var minuto = String(data.getMinutes()).padStart(2, '0');
 
-   return `${dia}/${mes}/${ano} - ${hora}:${minuto}`;
+  return `${dia}/${mes}/${ano} - ${hora}:${minuto}`;
 }
 
 $(document).ready(function() {
-  $('#loadData').click(function(event) {
-    event.preventDefault();
-
+  function carregarDados() {
     $.ajax({
-        method: "POST",
-        url: url + "funcoes/buscar-dados.php",
-        success: function(result) {
-          console.log(result);
-          var data = JSON.parse(result);
-
-          console.log(result);
-
-          console.log(data);
-
-          var thead = $('#dataTable thead tr');
-          var tbody = $('#dataTable tbody');
-          tbody.empty();
-
-          if(data.length > 0) {
-            thead.empty();
-
-            var headers = Object.keys(data[0]);
-            headers.forEach(function(header) {
-              thead.append('<th>' + header + '</th>');
-            });
-
-            var setorCounts = {};
-
-            data.forEach(function(form) {
-              if(!setorCounts[form.SETOR]) {
-                setorCounts[form.SETOR] = 0;
-              }
-              setorCounts[form.SETOR]++;
-
-              var row = '<tr>';
-              headers.forEach(function(header) {
-                var cellValue = form[header];
-
-                if (header === "INTERNAÇÃO" || header === "PREV. ALTA") {
-                  cellValue = formatarDataHora(cellValue);
-                }
-
-                row += '<td>' + cellValue + '</td>';
-              });
-              row += '</tr>';
-              tbody.append(row);
-            });
-
-            // Exibindo as contagens de SETOR
-            var setorCountsDiv = $('#setorCounts');
-            setorCountsDiv.empty();
-            for (var setor in setorCounts) {
-                // Criando o span dinamicamente
-                var pacientesSetor = $('<span>').text(`${setor} : ${setorCounts[setor]} - `);
-                // Adicionando o span ao div de contagem de setores
-                setorCountsDiv.append(pacientesSetor);
-                console.log(pacientesSetor);
-            }
-
-            var totalPacientes = $('<span>').text(`TOTAL DE PACIENTES : ${data.length}`);
-
-            $('#setorCounts').append(totalPacientes);
-          } 
-        },
-        error: function () {
-            console.log("Erro no AJAX!");
+      method: "GET",
+      url: url + "funcoes/buscar-dados.php",
+      dataType: "json",
+      success: function(result) {
+        if (result.error) {
+          console.error(result.error);
+          return;
         }
+
+        console.log(result);
+        var thead = $('#dataTable thead tr').empty();
+        var tbody = $('#dataTable tbody').empty();
+        var setorCounts = {};
+
+        if (result.length > 0) {
+          // Cabeçalho
+          var headers = Object.keys(result[0]);
+          headers.forEach(header => thead.append(`<th>${header}</th>`)); // Exbição do cabeçalho
+
+          result.forEach(form => {
+            // Contagem de setores
+            setorCounts[form.SETOR] = (setorCounts[form.SETOR] || 0) + 1;
+
+            // Condição para aplicação da função de formatar data
+            var row = $('<tr>');
+            headers.forEach(header => {
+              var cellValue = (header === "INTERNAÇÃO" || header === "PREV. ALTA") ? formatarDataHora(form[header]) : form[header];
+              row.append(`<td>${cellValue}</td>`);
+            });
+
+            // Exibição das linhas
+            tbody.append(row);
+          });
+
+          // Pacientes por Setor
+          var setorCountsDiv = $('#setorCounts').empty();
+          Object.keys(setorCounts).forEach(setor => {
+            setorCountsDiv.append(`<span>${setor} : ${setorCounts[setor]} - </span>`);
+          });
+
+          // Total de Pacientes
+          setorCountsDiv.append(`<span>TOTAL DE PACIENTES : ${result.length}</span>`);
+        }
+      },
+      error: function() {
+        console.log("Erro no AJAX!");
+      }
     });
-  });
+  };
+
+  carregarDados();
 });
