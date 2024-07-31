@@ -25,7 +25,9 @@ function carregarDados() {
         return;
       }
 
+      // Verificar o resultado do SQL
       console.log(result);
+
       var thead = $('#dataTable thead tr').empty();
       var tbody = $('#dataTable tbody').empty();
       var setorCounts = {};
@@ -40,10 +42,7 @@ function carregarDados() {
           // Contagem de setores
           setorCounts[form.SETOR] = (setorCounts[form.SETOR] || 0) + 1;
 
-          // if(form['ALTA?'] === 'NÃO') {
-          //   altaNaoCounts++;
-          // }
-
+          // Contagem de setores de alta não
           if (form['ALTA?'] === 'NÃO') {
             altaNaoCounts[form.SETOR] = (altaNaoCounts[form.SETOR] || 0) + 1;
           }
@@ -70,13 +69,15 @@ function carregarDados() {
         var setorCountsDiv = $('#setorCounts').empty();
         Object.keys(setorCounts).forEach(setor => {
           var altaNaoCount = altaNaoCounts[setor] || 0;
-          setorCountsDiv.append(`<div class="setor-item">${setor} = ${setorCounts[setor]}, ALTA NÃO = ${altaNaoCount}</div>`);
+          // setorCountsDiv.append(`<div class="setor-item">${setor} = ${setorCounts[setor]}, ALTA NÃO = ${altaNaoCount}</div>`);
+          setorCountsDiv.append(`<div class="setor-item">SEM ALTA ${setor} = ${altaNaoCount}</div>`);
         });
 
         // Total de Pacientes
         var totalAltaNao = Object.values(altaNaoCounts).reduce((sum, count) => sum + count, 0);
-        setorCountsDiv.append(`<div class="total">TOTAL DE PACIENTES : ${result.length}</div>`);
-        setorCountsDiv.append(`<div class="total">TOTAL DE ALTA NÃO : ${totalAltaNao}</div>`);
+        setorCountsDiv.append(`<div class="setor-item">TOTAL SEM ALTA : ${totalAltaNao}</div>`);
+        setorCountsDiv.append(`<div class="setor-item">TOTAL DE INTERNADOS : ${result.length}</div>`);
+        // setorCountsDiv.append(`<div class="total">TOTAL DE ALTA NÃO : ${totalAltaNao}</div>`);
       }
     },
     error: function() {
@@ -117,5 +118,5 @@ function pararRolagem() {
 }
 
 $(document).ready(function() {
-  rolarPaginaContinuamente()
+  rolarPaginaContinuamente();
 });

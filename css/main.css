@@ -1,12 +1,7 @@
 body {
   margin: 20px;
   font-family: "Open Sans", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 10px;
-  font-style: normal;
-  
-  /* Oculta a barra de rolagem para todos os navegadores modernos */
-  overflow: hidden; /* Oculta a barra de rolagem */
+  font-weight: 400;
 }
 
 /* Estilo para a tabela */
@@ -20,10 +15,8 @@ table {
 
 /* Estilo para o cabeçalho da tabela */
 table thead tr {
-  background: rgb(2,177,198);
   background: linear-gradient(90deg, rgba(2,177,198,1) 0%, rgba(90,187,176,1) 100%);
-  color: #ffffff;
-  text-align: left;
+  color: #fff;
   font-weight: bold;
 }
 
@@ -47,58 +40,31 @@ table tbody tr {
 
 #setorCounts {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px; /* Espaçamento entre os itens */
-  justify-content: center; /* Centraliza os itens horizontalmente */
-  width: 100%; /* Ajuste conforme necessário */
-  margin: 10px 0; /* Ajuste conforme necessário */
+  gap: 3px;
+  justify-content: center;
+  width: 100%;
+  margin: 10px 0;
 }
 
-.setor-item {
+.setor-item, .total {
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  flex: 1 1 calc(25% - 20px); /* Ajusta o tamanho dos itens */
-  box-sizing: border-box; /* Inclui o padding e a borda no tamanho total */
+  padding: 10px;
+  flex: 1 1 calc(25% - 20px);
+  box-sizing: border-box;
   font-weight: bold;
   text-align: center;
   color: #333;
-  min-width: 200px; /* Ajuste conforme necessário */
+  min-width: 100px;
 }
 
 .setor-item:nth-child(even) {
-  background-color: #f9f9f9; /* Cor alternativa para melhorar a legibilidade */
+  background-color: #f9f9f9;
 }
 
 .total {
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 20px;
   width: 100%;
-  text-align: center;
-  font-weight: bold;
-  color: #333;
-}
-
-/* Ocultar a barra de rolagem para Webkit (Chrome, Safari) */
-.hidden-scrollbar {
-  overflow: hidden;
-}
-
-.hidden-scrollbar::-webkit-scrollbar {
-  display: none; /* Oculta a barra de rolagem */
-}
-
-/* Ocultar a barra de rolagem no Firefox */
-.hidden-scrollbar {
-  scrollbar-width: none; /* Oculta a barra de rolagem */
-}
-
-/* Ocultar a barra de rolagem no IE e Edge */
-.hidden-scrollbar {
-  -ms-overflow-style: none; /* Oculta a barra de rolagem */
 }

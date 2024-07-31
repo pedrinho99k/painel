@@ -18,7 +18,7 @@ require_once("./config/config.php");
 </head>
 <body>
   <!-- <form id="myForm"><button type="submit" id="loadData">TESTE CONEXAO</button></form> -->
-  <button onclick="pararRolagem()">Parar Rolagem</button>
+  <!-- <button onclick="pararRolagem()">Parar Rolagem</button> -->
 
   <div id="setorCounts">
     <!-- Contagem dos setores -->
