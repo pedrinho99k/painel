@@ -90,28 +90,35 @@ let scrollInterval;
 let direction = 'down';
 
 function rolarPaginaContinuamente() {
-  clearInterval(scrollInterval);
-
   scrollInterval = setInterval(function() {
     const scrolledToBottom = (window.innerHeight + window.scrollY - 35) >= document.body.scrollHeight;
     const scrolledToTop = window.scrollY === 0;
 
     if (direction === 'down') {
       if (scrolledToBottom) {
-        direction = 'up';
+        clearInterval(scrollInterval); // Pausa a rolagem
+        setTimeout(() => {
+          direction = 'up';
+          rolarPaginaContinuamente(); // Retoma a rolagem após a pausa
+        }, 2000); // Pausa de 2 segundos no final
       } else {
         window.scrollBy({ top: 1, behavior: 'smooth' });
       }
     } else if (direction === 'up') {
       if (scrolledToTop) {
-        direction = 'down';
-        carregarDados();
+        clearInterval(scrollInterval); // Pausa a rolagem
+        carregarDados(); // Carrega os dados
+        setTimeout(() => {
+          direction = 'down';
+          rolarPaginaContinuamente(); // Retoma a rolagem após a pausa
+        }, 2000); // Pausa de 2 segundos no topo
       } else {
         window.scrollBy({ top: -1, behavior: 'smooth' });
       }
     }
   }, 40); // Intervalo mais curto para uma rolagem mais suave
 }
+
 
 function pararRolagem() {
   clearInterval(scrollInterval);
